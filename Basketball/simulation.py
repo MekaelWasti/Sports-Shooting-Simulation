@@ -64,25 +64,27 @@ class NET():
         # check for scoring
         self.x1 = 1046
         self.y1 = 411
+        '''Y coordinate representing the bottom of the rim'''
         self.x2 = 1154
-        self.y2 = 411
+        self.y2 = 411 - 22
+        '''Y coordinate representing the top of the rim'''
         self.scoreCount = 0
 
     def draw(self):
         '''Draw the basketball net object'''
 
         # Pole
-        pygame.draw.line(WIN, (0, 0, 0), (1154, 715), (1154, 411), 20)
+        pygame.draw.line(WIN, (0, 0, 0), (1154, 715), (1154, self.y1), 20)
 
         # Backboard
         POLEWIDTH = 18 + 4
         RIMWIDTH = 21
         pygame.draw.line(WIN, (183, 183, 183), (1172 - POLEWIDTH,
-                                                313), (1172 - POLEWIDTH, 411), 28)
+                                                313), (1172 - POLEWIDTH, self.y1), 28)
 
         # Rim
-        pygame.draw.line(WIN, (183, 183, 183), (1046, 411 - RIMWIDTH//2),
-                         (1154, 411 - RIMWIDTH//2), RIMWIDTH)
+        pygame.draw.line(WIN, (183, 183, 183), (self.x1, self.y1 - RIMWIDTH//2),
+                         (1154, self.y1 - RIMWIDTH//2), RIMWIDTH)
 
         # Score
         pygame.font.init()
@@ -92,13 +94,15 @@ class NET():
         text = font.render(str(self.scoreCount), True, (37, 37, 37))
         WIN.blit(text, (10, 10))
 
-    def scoreCheck(self, ball):
+    def scoreCheck(self, ball, scored):
         '''Account for a point scored. Each point for now is 1 point.
         Can account for 2 pointers and 3 pointers later'''
 
-        if ball.x >= self.x1 and ball.x <= self.x2 and ball.y <= self.y1 and ball.y >= self.y2:
+        if ball.x >= self.x1 and ball.x <= self.x2 and ball.y >= self.y2 and ball.y <= self.y1:
+            scored = True
             print("SCORE")
             self.scoreCount += 1
+        return scored
 
 
 class SIMULATION():

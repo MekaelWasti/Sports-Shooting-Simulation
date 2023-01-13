@@ -57,49 +57,59 @@ def draw_window(ball, net):
     pygame.display.update()
 
 
-def mouseDrag(e, object, clicked):
+def mouseDrag(e, ball, clicked, hovering):
 
     mpx, mpy = pygame.mouse.get_pos()
 
-    if mpx <= object.x + RADIUS and mpx >= object.x - RADIUS and mpy <= object.y + RADIUS and mpy >= object.y - RADIUS:
+    if mpx <= ball.x + RADIUS and mpx >= ball.x - RADIUS and mpy <= ball.y + RADIUS and mpy >= ball.y - RADIUS:
         hovering = True
     else:
-        hovering = False
+        if not clicked:
+            hovering = False
 
     if hovering:
-        object.color = (154, 154, 154)
+        ball.color = (154, 154, 154)
     else:
-        object.color = (37, 37, 37)
+        ball.color = (37, 37, 37)
 
     # x and y of circle is in centerz
 
-    if clicked:
-        object.color = (102, 102, 102)
-        object.x = mpx
-        object.y = mpy
+    if clicked and hovering:
+        ball.color = (102, 102, 102)
+        ball.x = mpx
+        ball.y = mpy
         # print("A ga haj a")
 
     if e.type == pygame.MOUSEBUTTONDOWN:
         if e.button == 1:
-            clicked = True
             if hovering:
-                object.color = (154, 154, 154)
-                object.x = mpx
-                object.y = mpy
-                # print("AH")
+                clicked = True
+                ball.color = (154, 154, 154)
+                ball.x = mpx
+                ball.y = mpy
+                print("AH")
+                throw(e, ball)
 
+    # Event is not picking up mousebuttonup if the mouse is moving while the mousebutton is released
     if e.type == pygame.MOUSEBUTTONUP:
         if e.button == 1:
             clicked = False
-            # print("NAH")
+            print("NAH")
 
-    return clicked
+    return clicked, hovering
+
+
+def throw(e, ball):
+    if e.type == pygame.MOUSEMOTION:
+        dx, dy = e.rel
 
 
 def main():
     run = True
     state = True
     clicked = False
+    hovering = False
+    scored = False
 
     sim = simulation.SIMULATION()
     ball = simulation.BALL(RADIUS)
@@ -109,7 +119,11 @@ def main():
         dt = clock.tick(FPS) * 0.001
 
         # Simulation input events
-        event = pygame.event.poll()
+        # event = pygame.event.poll()
+        event = pygame.event.get()
+        print(event)
+        print("\n\n\n")
+
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit(0)
@@ -135,7 +149,7 @@ def main():
         if not state:
             if event.type == pygame.KEYDOWN and event.key == pygame.K_x:
                 ball.move(dt)
-                draw_window(ball)
+                draw_window(ball, net)
 
         # Check for MOUSE OBJECT MOVEMENT
         """if mouse is on an object, and is clicked down, it now 'grabs' that object and can
@@ -143,10 +157,11 @@ def main():
         where it's left, if the game is not paused, the physics shall continue as normal
         and the ball will begin to fall"""
 
-        clicked = mouseDrag(event, ball, clicked)
+        clicked, hovering = mouseDrag(event, ball, clicked, hovering)
 
-        # Check for point scored
-        net.scoreCheck(ball)
+        # Check for point scored, with if statement will only update the score if game is in non-paused state
+        # if state:
+        scored = net.scoreCheck(ball, scored)
 
         # Controls the speed of this main game loop
         # Will run this game loop at maximum value of FPS
