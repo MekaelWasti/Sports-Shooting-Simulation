@@ -78,6 +78,7 @@ def mouseDrag(e, ball, clicked, hovering):
         ball.color = (102, 102, 102)
         ball.x = mpx
         ball.y = mpy
+        ball.vy = 0
         # print("A ga haj a")
 
     if e.type == pygame.MOUSEBUTTONDOWN:
@@ -116,58 +117,61 @@ def main():
     net = simulation.NET()
 
     while run:
+        # Controls the speed of this main game loop
+        # Will run this game loop at maximum value of FPS
         dt = clock.tick(FPS) * 0.001
 
         # Simulation input events
         # event = pygame.event.poll()
-        event = pygame.event.get()
-        print(event)
-        print("\n\n\n")
+        # event = pygame.event.get()
 
-        if event.type == pygame.QUIT:
-            pygame.quit()
-            sys.exit(0)
+        for event in pygame.event.get():
+            print(event)
+            print("\n\n\n")
 
-        if state and event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
-            print("PAUSE")
-            sim.pause()
-            state = False
-            continue
-        elif not state and event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
-            print("START")
-            sim.resume()
-            state = True
-            continue
-        else:
-            pass
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit(0)
 
-        if event.type == pygame.KEYDOWN and event.key == pygame.K_z:
-            pygame.quit()
-            break
+            if state and event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                print("PAUSE")
+                sim.pause()
+                state = False
+                continue
+            elif not state and event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                print("START")
+                sim.resume()
+                state = True
+                continue
+            else:
+                pass
 
-        # step through simulation
-        if not state:
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_x:
-                ball.move(dt)
-                draw_window(ball, net)
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_z:
+                pygame.quit()
+                break
 
-        # Check for MOUSE OBJECT MOVEMENT
-        """if mouse is on an object, and is clicked down, it now 'grabs' that object and can
-        move it wherever it wants. When let go, if the game is paused the object will stay
-        where it's left, if the game is not paused, the physics shall continue as normal
-        and the ball will begin to fall"""
+            # step through simulation
+            if not state:
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_x:
+                    ball.move(dt)
+                    draw_window(ball, net)
 
-        clicked, hovering = mouseDrag(event, ball, clicked, hovering)
+            if event.type == pygame.QUIT:
+                run = False
+
+            # Check for MOUSE OBJECT MOVEMENT
+            """if mouse is on an object, and is clicked down, it now 'grabs' that object and can
+            move it wherever it wants. When let go, if the game is paused the object will stay
+            where it's left, if the game is not paused, the physics shall continue as normal
+            and the ball will begin to fall"""
+
+            clicked, hovering = mouseDrag(event, ball, clicked, hovering)
+
+        # ----------------------------------------------------------------
 
         # Check for point scored, with if statement will only update the score if game is in non-paused state
         # if state:
         scored = net.scoreCheck(ball, scored)
-
-        # Controls the speed of this main game loop
-        # Will run this game loop at maximum value of FPS
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                run = False
 
         if state and not clicked:
             ball.move(dt)
