@@ -18,7 +18,9 @@ class BALL():
         self.friction = -.12
         self.color = (37, 37, 37)
         self.ACCELERATION = 981
-        self.records = []
+        self.time = 0
+        self.power = 0
+        self.angle = 0
 
     def draw(self):
         '''Draw the ball object in it's respective coordinates'''

@@ -1,6 +1,7 @@
 import pygame
 import sys
 import simulation
+import math
 
 # WIDTH, HEIGHT = 900, 500
 WIDTH, HEIGHT = 1280, 720
@@ -17,6 +18,15 @@ FPS = 160  # Target for final
 # ACCELERATION = 9.8
 # ACCELERATION = 0.01
 # ACCELERATION = 981
+
+# Global Variables
+# Params needed for projectile motion
+initX = 0
+initY = 0
+time = 0
+power = 0
+angle = 0
+shoot = False
 
 
 # Assets - These images are known as "Surfaces"
@@ -54,10 +64,17 @@ def draw_window(ball, net):
     # Setup
     # ------------------------------------------------------------------------
 
+    mpx, mpy = pygame.mouse.get_pos()
+    line = [(ball.x, ball.y), (mpx, mpy)]
+    pygame.draw.line(WIN, (0, 0, 0), line[0], line[1])
+
     pygame.display.update()
 
 
 def mouseDrag(e, ball, clicked, hovering):
+    global shoot, time, initX, initY, power, angle
+    initX = ball.x
+    initY = ball.y
 
     mpx, mpy = pygame.mouse.get_pos()
 
@@ -81,31 +98,79 @@ def mouseDrag(e, ball, clicked, hovering):
         ball.vy = 0
         # print("A ga haj a")
 
+    line = [(ball.x, ball.y), (mpx, mpy)]
+
     if e.type == pygame.MOUSEBUTTONDOWN:
         if e.button == 1:
-            if hovering:
-                clicked = True
-                ball.color = (154, 154, 154)
-                ball.x = mpx
-                ball.y = mpy
-                print("AH")
-                throw(e, ball)
+            # if hovering:
+            #     clicked = True
+            #     ball.color = (154, 154, 154)
+            #     ball.x = mpx
+            #     ball.y = mpy
+            #     print("AH")
+
+            if not shoot:
+                shoot = True
+                # Store initial x and y for projectile motion as it is a function of time
+                # We need to keep the x and y the same for the course of the projectile motion
+                initX = ball.x
+                initY = ball.y
+                time = 0
+                power = math.sqrt(
+                    (line[1][1] - line[0][1])**2 + (line[1][0] - line[0][0])**2)/40
+                angle = findAngle((mpx, mpy), ball)
+                print(power)
+                print(angle)
 
     # Event is not picking up mousebuttonup if the mouse is moving while the mousebutton is released
     if e.type == pygame.MOUSEBUTTONUP:
         if e.button == 1:
             clicked = False
             print("NAH")
+        if not shoot:
+            time = 0
 
-    return clicked, hovering
+    return clicked, hovering, angle
 
 
-def throw(e, ball):
-    if e.type == pygame.MOUSEMOTION:
-        dx, dy = e.rel
+def projectileMotion(initX, initY, power, angle, time):
+    print("SHOOOTING")
+    vX = math.cos(angle) * power
+    vY = math.sin(angle) * power
+
+    distX = vX * time
+    distY = (vY * time) + ((-9.8 * (time)**2) / 2)
+
+    nextX = round(distX + initX)
+    nextY = round(initY - distY)
+    # print(time, time)
+
+    return(nextX, nextY)
+
+
+def findAngle(pos, ball):
+    sX = ball.x
+    sY = ball.y
+    try:
+        angle = math.atan((sY - pos[1]) / (sX - pos[0]))
+    except:
+        angle = math.pi / 2
+
+    if pos[1] < sY and pos[0] > sX:
+        angle = abs(angle)
+    elif pos[1] < sY and pos[0] < sX:
+        angle = math.pi - angle
+    elif pos[1] > sY and pos[0] < sX:
+        angle = math.pi + abs(angle)
+    elif pos[1] > sY and pos[0] > sX:
+        angle = (math.pi * 2) - angle
+
+    return angle
 
 
 def main():
+    global shoot, time, initX, initY, power, angle
+
     run = True
     state = True
     clicked = False
@@ -120,14 +185,30 @@ def main():
         # Controls the speed of this main game loop
         # Will run this game loop at maximum value of FPS
         dt = clock.tick(FPS) * 0.001
+        dt = 0.015
 
         # Simulation input events
         # event = pygame.event.poll()
         # event = pygame.event.get()
 
+        if shoot:
+            # if ball.y < 720 - ball.RADIUS - 10:
+            if ball.y < 700:
+                time += 0.015
+                po = projectileMotion(ball.x, ball.y, power, angle, time)
+                print("AH")
+                print(po)
+                ball.x = po[0]
+                ball.y = po[1]
+            else:
+                shoot = False
+                # Ground Y
+                ball.y = 494
+                ball.bounce()
+
         for event in pygame.event.get():
-            print(event)
-            print("\n\n\n")
+            # print(event)
+            # print("\n\n\n")
 
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -165,7 +246,8 @@ def main():
             where it's left, if the game is not paused, the physics shall continue as normal
             and the ball will begin to fall"""
 
-            clicked, hovering = mouseDrag(event, ball, clicked, hovering)
+            clicked, hovering, angle = mouseDrag(
+                event, ball, clicked, hovering)
 
         # ----------------------------------------------------------------
 
@@ -174,8 +256,9 @@ def main():
         scored = net.scoreCheck(ball, scored)
 
         if state and not clicked:
-            ball.move(dt)
-            ball.bounce()
+            if not shoot:
+                ball.move(dt)
+                ball.bounce()
             draw_window(ball, net)
         else:
             ball.bounce()
