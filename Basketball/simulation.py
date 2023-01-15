@@ -37,13 +37,29 @@ class BALL():
     def limitvy(self, maxvy):
         min(-maxvy, max(self.vy.x))
 
-    def bounce(self):
+    def bounce(self, dt):
         # Call when collision is detected for now with ground
         if self.y > 720 - self.RADIUS - 10:
-            self.ACCELERATION = 0
-            self.vy = 0
+            # if self.y > 720:
+            # print("AH")
+            print(self.vy)
+            # self.ACCELERATION = 0
+            self.ACCELERATION = -981 * dt
+            # self.vy = 0
+            # Attempt to add energy loss by percentage ballpark of 20% loss per bounce
+            self.vy = int(self.vy)*-0.8 * dt*100
         else:
             self.ACCELERATION = 981
+        if self.x > 1280 - self.RADIUS:
+            # Temporary bound checking for right
+            self.ACCELERATION = 0
+            self.vy = 0
+            self.x = 1280 - self.RADIUS
+        if self.x < 0 + self.RADIUS:
+            # Temporary bound checking for right
+            self.ACCELERATION = 0
+            self.vy = 0
+            self.x = 0 + self.RADIUS
 
         # def step(self,dt):
         #     '''Step through the simulation by one frame each call'''

@@ -14,6 +14,7 @@ fillColor = (25, 25, 25)
 WHITE = (255, 255, 255)
 
 FPS = 160  # Target for final
+# FPS = 20  # Target for final
 # FPS = 30  # For easier stepping
 # ACCELERATION = 9.8
 # ACCELERATION = 0.01
@@ -27,6 +28,7 @@ time = 0
 power = 0
 angle = 0
 shoot = False
+mouseMomentum = []
 
 
 # Assets - These images are known as "Surfaces"
@@ -77,6 +79,15 @@ def mouseDrag(e, ball, clicked, hovering):
     initY = ball.y
 
     mpx, mpy = pygame.mouse.get_pos()
+    mouseREL = pygame.mouse.get_rel()
+
+    # print(mouseREL)
+    if len(mouseMomentum) < 5:
+        mouseMomentum.append(mouseREL)
+    else:
+        mouseMomentum.pop(0)
+        mouseMomentum.append(mouseREL)
+    # print(mouseMomentum)
 
     if mpx <= ball.x + RADIUS and mpx >= ball.x - RADIUS and mpy <= ball.y + RADIUS and mpy >= ball.y - RADIUS:
         hovering = True
@@ -89,8 +100,9 @@ def mouseDrag(e, ball, clicked, hovering):
     else:
         ball.color = (37, 37, 37)
 
-    # x and y of circle is in centerz
+    # x and y of circle is in center
 
+    # Dragging
     if clicked and hovering:
         ball.color = (102, 102, 102)
         ball.x = mpx
@@ -102,44 +114,59 @@ def mouseDrag(e, ball, clicked, hovering):
 
     if e.type == pygame.MOUSEBUTTONDOWN:
         if e.button == 1:
-            # if hovering:
-            #     clicked = True
-            #     ball.color = (154, 154, 154)
-            #     ball.x = mpx
-            #     ball.y = mpy
-            #     print("AH")
+            if hovering:
+                clicked = True
+                shoot = False
+                ball.color = (154, 154, 154)
+                ball.x = mpx
+                ball.y = mpy
+                print("AH")
 
             if not shoot:
-                shoot = True
+                # shoot = True
                 # Store initial x and y for projectile motion as it is a function of time
                 # We need to keep the x and y the same for the course of the projectile motion
                 initX = ball.x
                 initY = ball.y
                 time = 0
-                power = math.sqrt(
-                    (line[1][1] - line[0][1])**2 + (line[1][0] - line[0][0])**2)/40
-                angle = findAngle((mpx, mpy), ball)
-                print(power)
-                print(angle)
+                # power = math.sqrt(
+                # (line[1][1] - line[0][1])**2 + (line[1][0] - line[0][0])**2)/40
+                # angle = findAngle((mpx, mpy), ball)
 
     # Event is not picking up mousebuttonup if the mouse is moving while the mousebutton is released
     if e.type == pygame.MOUSEBUTTONUP:
-        if e.button == 1:
+        if e.button == 1 and hovering and clicked:
             clicked = False
             print("NAH")
-        if not shoot:
-            time = 0
+            shoot = True
+
+            index = -2
+            index2 = index + 1
+
+            power = math.sqrt(
+                (abs(mouseMomentum[index][1] - mouseMomentum[index2][1]))**2 + (mouseMomentum[index][0] - mouseMomentum[index2][0])**2)/10
+
+            print(mouseMomentum)
+            print(
+                "AHHHHH", (abs(mouseMomentum[index][1]) - abs(mouseMomentum[index2][1])))
+            angle = findAngle(
+                (mouseMomentum[index][0], mouseMomentum[index][1]), (mouseMomentum[index2][0], mouseMomentum[index2][1]))
+            print(power)
+            print(angle)
+        # if not shoot:
+            # time = 0
 
     return clicked, hovering, angle
 
 
 def projectileMotion(initX, initY, power, angle, time):
-    print("SHOOOTING")
+    # print("SHOOOTING")
     vX = math.cos(angle) * power
     vY = math.sin(angle) * power
 
     distX = vX * time
-    distY = (vY * time) + ((-9.8 * (time)**2) / 2)
+    distY = (vY * time) + ((-9.8 * (time)**2))
+    # distY = (vY * time) + ((-4.6 * (time)**2)/2)
 
     nextX = round(distX + initX)
     nextY = round(initY - distY)
@@ -149,8 +176,11 @@ def projectileMotion(initX, initY, power, angle, time):
 
 
 def findAngle(pos, ball):
-    sX = ball.x
-    sY = ball.y
+    # sX = ball.x
+    # sY = ball.y
+
+    sX = ball[0]
+    sY = ball[1]
     try:
         angle = math.atan((sY - pos[1]) / (sX - pos[0]))
     except:
@@ -185,26 +215,31 @@ def main():
         # Controls the speed of this main game loop
         # Will run this game loop at maximum value of FPS
         dt = clock.tick(FPS) * 0.001
-        dt = 0.015
+        # print(dt)
+        # time = dt
+        # dt = 0.015
 
         # Simulation input events
         # event = pygame.event.poll()
         # event = pygame.event.get()
-
-        if shoot:
+        if shoot and state:
             # if ball.y < 720 - ball.RADIUS - 10:
-            if ball.y < 700:
-                time += 0.015
+            if ball.y < 677:
+                time += dt * 2
+                # time += dt * 10
+                # print(time)
                 po = projectileMotion(ball.x, ball.y, power, angle, time)
-                print("AH")
-                print(po)
+                # print("AH")
+                # print(po)
                 ball.x = po[0]
                 ball.y = po[1]
+                print(po[1])
+                ball.bounce(dt)
             else:
                 shoot = False
                 # Ground Y
-                ball.y = 494
-                ball.bounce()
+                ball.y = 720 - ball.RADIUS - 10
+                ball.bounce(dt)
 
         for event in pygame.event.get():
             # print(event)
@@ -258,10 +293,10 @@ def main():
         if state and not clicked:
             if not shoot:
                 ball.move(dt)
-                ball.bounce()
+                ball.bounce(dt)
             draw_window(ball, net)
         else:
-            ball.bounce()
+            # ball.bounce()
             draw_window(ball, net)
 
     pygame.quit()
