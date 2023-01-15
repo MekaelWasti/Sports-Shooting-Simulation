@@ -73,7 +73,7 @@ def draw_window(ball, net):
     pygame.display.update()
 
 
-def mouseDrag(e, ball, clicked, hovering):
+def mouseDrag(e, ball, clicked, hovering, dt):
     global shoot, time, initX, initY, power, angle
     initX = ball.x
     initY = ball.y
@@ -141,18 +141,28 @@ def mouseDrag(e, ball, clicked, hovering):
             shoot = True
 
             index = -2
-            index2 = index + 1
+            index2 = index + 4
+            index2 = -1
+            print(mouseMomentum)
 
             power = math.sqrt(
-                (abs(mouseMomentum[index][1] - mouseMomentum[index2][1]))**2 + (mouseMomentum[index][0] - mouseMomentum[index2][0])**2)/10
+                (abs(mouseMomentum[index][1] - mouseMomentum[index2][1]))**2 + (mouseMomentum[index][0] - mouseMomentum[index2][0])**2)/7
 
             print(mouseMomentum)
             print(
                 "AHHHHH", (abs(mouseMomentum[index][1]) - abs(mouseMomentum[index2][1])))
             angle = findAngle(
-                (mouseMomentum[index][0], mouseMomentum[index][1]), (mouseMomentum[index2][0], mouseMomentum[index2][1]))
-            print(power)
-            print(angle)
+                # ((mouseMomentum[index][0], mouseMomentum[index][1]), (mouseMomentum[index2][0], mouseMomentum[index2][1])),ball)
+                (mouseMomentum[index2][0], mouseMomentum[index2][1]), (mouseMomentum[index][1], mouseMomentum[index][1]))
+            # ball.vy = (math.sin(angle) * power)
+            ball.vy = ((720 - initY) - (-9.8) * (dt)) * 2.5
+            print(" A H H ")
+            print(dt)
+            print(ball.vy)
+            print(initY)
+
+            # print(power)
+            # print(angle)
         # if not shoot:
             # time = 0
 
@@ -172,7 +182,7 @@ def projectileMotion(initX, initY, power, angle, time):
     nextY = round(initY - distY)
     # print(time, time)
 
-    return(nextX, nextY)
+    return(nextX, nextY), vY
 
 
 def findAngle(pos, ball):
@@ -223,17 +233,17 @@ def main():
         # event = pygame.event.poll()
         # event = pygame.event.get()
         if shoot and state:
-            # if ball.y < 720 - ball.RADIUS - 10:
-            if ball.y < 677:
+            if ball.y < 720 - ball.RADIUS - 10:
+                # if ball.y < 677:
                 time += dt * 2
                 # time += dt * 10
                 # print(time)
-                po = projectileMotion(ball.x, ball.y, power, angle, time)
+                po, vy = projectileMotion(ball.x, ball.y, power, angle, time)
                 # print("AH")
                 # print(po)
                 ball.x = po[0]
                 ball.y = po[1]
-                print(po[1])
+                # print(po[1])
                 ball.bounce(dt)
             else:
                 shoot = False
@@ -270,6 +280,7 @@ def main():
             if not state:
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_x:
                     ball.move(dt)
+                    ball.bounce(dt)
                     draw_window(ball, net)
 
             if event.type == pygame.QUIT:
@@ -282,7 +293,7 @@ def main():
             and the ball will begin to fall"""
 
             clicked, hovering, angle = mouseDrag(
-                event, ball, clicked, hovering)
+                event, ball, clicked, hovering, dt)
 
         # ----------------------------------------------------------------
 
@@ -296,7 +307,7 @@ def main():
                 ball.bounce(dt)
             draw_window(ball, net)
         else:
-            # ball.bounce()
+            ball.bounce(dt)
             draw_window(ball, net)
 
     pygame.quit()

@@ -42,12 +42,16 @@ class BALL():
         if self.y > 720 - self.RADIUS - 10:
             # if self.y > 720:
             # print("AH")
-            print(self.vy)
+            # print(self.vy)
             # self.ACCELERATION = 0
-            self.ACCELERATION = -981 * dt
+            # self.ACCELERATION = -981 * dt
+            # print(self.vy)
+            self.ACCELERATION = -981
             # self.vy = 0
+            self.y = 720 - self.RADIUS - 10
             # Attempt to add energy loss by percentage ballpark of 20% loss per bounce
-            self.vy = int(self.vy)*-0.8 * dt*100
+            self.vy = self.vy*-0.8 * dt*100
+            # self.vy = int(self.vy)*-0.8 * dt * 100
         else:
             self.ACCELERATION = 981
         if self.x > 1280 - self.RADIUS:
@@ -61,11 +65,11 @@ class BALL():
             self.vy = 0
             self.x = 0 + self.RADIUS
 
-        # def step(self,dt):
-        #     '''Step through the simulation by one frame each call'''
-        #     self.y += self.vy
-        #     self.vy += (self.g * self.dt / self.mass)
-        #     self.cur_time += self.dt
+        def step(self, dt):
+            '''Step through the simulation by one frame each call'''
+            self.y += self.vy
+            self.vy += (self.g * self.dt / self.mass)
+            self.cur_time += self.dt
 
     def pause(self):
         '''Pause the ball's movements'''
