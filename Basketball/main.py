@@ -14,6 +14,7 @@ fillColor = (25, 25, 25)
 WHITE = (255, 255, 255)
 
 FPS = 160  # Target for final
+# FPS = 60  # Target for final
 # FPS = 20  # Target for final
 # FPS = 30  # For easier stepping
 # ACCELERATION = 9.8
@@ -152,8 +153,8 @@ def mouseDrag(e, ball, clicked, hovering, dt):
             print(
                 "AHHHHH", (abs(mouseMomentum[index][1]) - abs(mouseMomentum[index2][1])))
             angle = findAngle(
-                # ((mouseMomentum[index][0], mouseMomentum[index][1]), (mouseMomentum[index2][0], mouseMomentum[index2][1])),ball)
-                (mouseMomentum[index2][0], mouseMomentum[index2][1]), (mouseMomentum[index][1], mouseMomentum[index][1]))
+                (mouseMomentum[index][0], mouseMomentum[index][1]), (mouseMomentum[index2][0], mouseMomentum[index2][1]))  # Best results yet
+            # (mouseMomentum[index2][0], mouseMomentum[index2][1]), (mouseMomentum[index][1], mouseMomentum[index][1]))
             # ball.vy = (math.sin(angle) * power)
             ball.vy = ((720 - initY) - (-9.8) * (dt)) * 2.5
             print(" A H H ")
@@ -182,7 +183,7 @@ def projectileMotion(initX, initY, power, angle, time):
     nextY = round(initY - distY)
     # print(time, time)
 
-    return(nextX, nextY), vY
+    return (nextX, nextY), vY
 
 
 def findAngle(pos, ball):
